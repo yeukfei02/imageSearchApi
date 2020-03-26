@@ -29,7 +29,7 @@ async function getUnsplashImage(searchTerm, resultList) {
       obj.image_id = item.id;
       obj.thumbnails = item.urls.thumb;
       obj.preview = item.urls.full;
-      obj.title = item.description;
+      obj.title = item.description ? item.description : '';
       obj.source = 'Unsplash';
 
       if (!_.isEmpty(item.tags)) {
@@ -69,7 +69,7 @@ async function getPixabayImage(searchTerm, resultList) {
 
     pixabayResult.hits.forEach((item, i) => {
       let obj = {};
-      obj.image_id = item.id;
+      obj.image_id = item.id.toString();
       obj.thumbnails = item.previewURL;
       obj.preview = item.webformatURL;
       obj.title = '';
