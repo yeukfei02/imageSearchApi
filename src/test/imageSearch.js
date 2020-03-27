@@ -1,4 +1,3 @@
-
 const imageSearchController = require('../controller/imageSearch');
 
 module.exports.getImageSearch = async (searchTerm) => {
