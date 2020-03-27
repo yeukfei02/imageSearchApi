@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const _ = require('lodash');
-const axios = require('axios');
 const fetch = require('node-fetch');
 global.fetch = fetch;
 
@@ -15,39 +14,41 @@ const pixabay = Pixabay.authenticate(process.env.PIXABAY_API_KEY);
 const common = require('../common/common');
 const ImageSearch = require('../model/imageSearch');
 
-async function getResultRaw(obj) {
+async function toJson(obj) {
   return typeof obj.json === 'function' ? obj.json() : obj;
 }
 
 async function getUnsplashImage(searchTerm, resultList) {
   const unsplashResultRaw = await unsplash.search.photos(searchTerm);
-  const unsplashResult = await getResultRaw(unsplashResultRaw);
+  const unsplashResult = await toJson(unsplashResultRaw);
   if (!_.isEmpty(unsplashResult)) {
     let finalTagsList = [];
-    unsplashResult.results.forEach((item, i) => {
-      let obj = {};
-      obj.image_id = item.id;
-      obj.thumbnails = item.urls.thumb;
-      obj.preview = item.urls.full;
-      obj.title = item.description ? item.description : '';
-      obj.source = 'Unsplash';
+    if (!_.isEmpty(unsplashResult.results)) {
+      unsplashResult.results.forEach((item, i) => {
+        let obj = {};
+        obj.image_id = item.id;
+        obj.thumbnails = item.urls.thumb;
+        obj.preview = item.urls.full;
+        obj.title = item.description ? item.description : '';
+        obj.source = 'Unsplash';
 
-      if (!_.isEmpty(item.tags)) {
-        const tagsList = item.tags.map((item, i) => {
-          return item.title;
-        });
-        const formattedTagsList = tagsList.join(',').split(',');
-        const uniqTagsList = _.uniq(formattedTagsList);
-        if (!_.isEmpty(uniqTagsList)) {
-          uniqTagsList.forEach((item, i) => {
-            if (!finalTagsList.includes(item)) finalTagsList.push(item);
+        if (!_.isEmpty(item.tags)) {
+          const tagsList = item.tags.map((item, i) => {
+            return item.title;
           });
+          const formattedTagsList = tagsList.join(',').split(',');
+          const uniqTagsList = _.uniq(formattedTagsList);
+          if (!_.isEmpty(uniqTagsList)) {
+            uniqTagsList.forEach((item, i) => {
+              if (!finalTagsList.includes(item)) finalTagsList.push(item);
+            });
+          }
         }
-      }
-      obj.tags = finalTagsList;
+        obj.tags = finalTagsList;
 
-      if (!_.isEmpty(obj)) resultList.push(obj);
-    });
+        if (!_.isEmpty(obj)) resultList.push(obj);
+      });
+    }
   }
 }
 
@@ -67,17 +68,19 @@ async function getPixabayImage(searchTerm, resultList) {
       });
     }
 
-    pixabayResult.hits.forEach((item, i) => {
-      let obj = {};
-      obj.image_id = item.id.toString();
-      obj.thumbnails = item.previewURL;
-      obj.preview = item.webformatURL;
-      obj.title = '';
-      obj.source = 'Pixabay';
-      obj.tags = finalTagsList;
+    if (!_.isEmpty(pixabayResult.hits)) {
+      pixabayResult.hits.forEach((item, i) => {
+        let obj = {};
+        obj.image_id = item.id.toString();
+        obj.thumbnails = item.previewURL;
+        obj.preview = item.webformatURL;
+        obj.title = '';
+        obj.source = 'Pixabay';
+        obj.tags = finalTagsList;
 
-      if (!_.isEmpty(obj)) resultList.push(obj);
-    });
+        if (!_.isEmpty(obj)) resultList.push(obj);
+      });
+    }
   }
 }
 
@@ -97,3 +100,11 @@ module.exports.getImageSearch = async (req, res) => {
     });
   }
 };
+
+module.exports.getUnsplashImageForTest = async (searchTerm, resultList) => {
+  await getUnsplashImage(searchTerm, resultList);
+}
+
+module.exports.getPixabayImageForTest = async (searchTerm, resultList) => {
+  await getPixabayImage(searchTerm, resultList);
+}
