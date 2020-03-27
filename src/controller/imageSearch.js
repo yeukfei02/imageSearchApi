@@ -87,7 +87,7 @@ async function getPixabayImage(searchTerm, resultList) {
 async function addImageSearchToDB(data) {
   const imageSearch = ImageSearch({
     _id: mongoose.Types.ObjectId(),
-    image_ID: data.image_ID,
+    image_id: data.image_id,
     thumbnails: data.thumbnails,
     preview: data.preview,
     title: data.title,
@@ -99,8 +99,8 @@ async function addImageSearchToDB(data) {
   return result;
 }
 
-async function getImageSearchFromDBById(id) {
-  const imageSearch = await ImageSearch.findOne({ id: id });
+async function getImageSearchFromDBById(imageId) {
+  const imageSearch = await ImageSearch.findOne({ image_id: imageId });
   return imageSearch;
 }
 
@@ -116,9 +116,8 @@ module.exports.getImageSearch = async (req, res) => {
 
     if (!_.isEmpty(resultList)) {
       resultList.forEach(async (item, i) => {
-        const imageSearchFromDB = await getImageSearchFromDBById(item.id);
-        if (_.isEmpty(imageSearchFromDB))
-          await addImageSearchToDB(item);
+        const imageSearchFromDB = await getImageSearchFromDBById(item.image_id);
+        if (_.isEmpty(imageSearchFromDB)) await addImageSearchToDB(item);
       });
     }
 
