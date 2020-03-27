@@ -84,6 +84,26 @@ async function getPixabayImage(searchTerm, resultList) {
   }
 }
 
+async function addImageSearchToDB(data) {
+  const imageSearch = ImageSearch({
+    _id: mongoose.Types.ObjectId(),
+    image_ID: data.image_ID,
+    thumbnails: data.thumbnails,
+    preview: data.preview,
+    title: data.title,
+    source: data.source,
+    tags: data.tags,
+  });
+
+  const result = await imageSearch.save();
+  return result;
+}
+
+async function getImageSearchFromDBById(id) {
+  const imageSearch = await ImageSearch.findOne({ id: id });
+  return imageSearch;
+}
+
 module.exports.getImageSearch = async (req, res) => {
   const searchTerm = req.query.searchTerm;
 
@@ -92,8 +112,15 @@ module.exports.getImageSearch = async (req, res) => {
   const userLoginStatus = common.checkUserLogin(req, res);
   if (userLoginStatus) {
     await getUnsplashImage(searchTerm, resultList);
-
     await getPixabayImage(searchTerm, resultList);
+
+    if (!_.isEmpty(resultList)) {
+      resultList.forEach(async (item, i) => {
+        const imageSearchFromDB = await getImageSearchFromDBById(item.id);
+        if (_.isEmpty(imageSearchFromDB))
+          await addImageSearchToDB(item);
+      });
+    }
 
     res.status(200).json(resultList);
   }
