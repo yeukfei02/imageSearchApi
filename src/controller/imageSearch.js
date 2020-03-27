@@ -101,10 +101,11 @@ module.exports.getImageSearch = async (req, res) => {
   }
 };
 
-module.exports.getUnsplashImageForTest = async (searchTerm, resultList) => {
-  await getUnsplashImage(searchTerm, resultList);
-}
+module.exports.getImageSearchForTest = async (searchTerm) => {
+  let resultList = [];
 
-module.exports.getPixabayImageForTest = async (searchTerm, resultList) => {
+  await getUnsplashImage(searchTerm, resultList);
   await getPixabayImage(searchTerm, resultList);
+
+  return resultList;
 }
