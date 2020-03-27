@@ -7,7 +7,7 @@ const currentDateWithTimezone = moment.tz(moment().format(), userTimezone);
 
 const imageSearchSchema = mongoose.Schema({
   _id: mongoose.Schema.Types.ObjectId,
-  image_ID: { type: String },
+  image_id: { type: String },
   thumbnails: { type: String },
   preview: { type: String },
   title: { type: String },
