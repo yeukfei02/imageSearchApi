@@ -3,6 +3,9 @@ const _ = require('lodash');
 const fetch = require('node-fetch');
 global.fetch = fetch;
 
+const env = require('dotenv');
+env.config();
+
 // unsplash
 const Unsplash = require('unsplash-js').default;
 const unsplash = new Unsplash({ accessKey: process.env.UNSPLASH_API_KEY });
