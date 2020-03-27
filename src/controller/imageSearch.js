@@ -18,13 +18,15 @@ async function toJson(obj) {
   return typeof obj.json === 'function' ? obj.json() : obj;
 }
 
-async function getUnsplashImage(searchTerm, resultList) {
+async function getUnsplashImage(searchTerm) {
+  let result = [];
+
   const unsplashResultRaw = await unsplash.search.photos(searchTerm);
   const unsplashResult = await toJson(unsplashResultRaw);
   if (!_.isEmpty(unsplashResult)) {
     let finalTagsList = [];
     if (!_.isEmpty(unsplashResult.results)) {
-      unsplashResult.results.forEach((item, i) => {
+      result = unsplashResult.results.map((item, i) => {
         let obj = {};
         obj.image_id = item.id;
         obj.thumbnails = item.urls.thumb;
@@ -46,13 +48,17 @@ async function getUnsplashImage(searchTerm, resultList) {
         }
         obj.tags = finalTagsList;
 
-        if (!_.isEmpty(obj)) resultList.push(obj);
+        return obj;
       });
     }
   }
+
+  return result;
 }
 
-async function getPixabayImage(searchTerm, resultList) {
+async function getPixabayImage(searchTerm) {
+  let result = [];
+
   const pixabayResult = await pixabay.searchImages(searchTerm);
   if (!_.isEmpty(pixabayResult)) {
     const tagsList = pixabayResult.hits.map((item, i) => {
@@ -69,7 +75,7 @@ async function getPixabayImage(searchTerm, resultList) {
     }
 
     if (!_.isEmpty(pixabayResult.hits)) {
-      pixabayResult.hits.forEach((item, i) => {
+      result = pixabayResult.hits.map((item, i) => {
         let obj = {};
         obj.image_id = item.id.toString();
         obj.thumbnails = item.previewURL;
@@ -78,10 +84,12 @@ async function getPixabayImage(searchTerm, resultList) {
         obj.source = 'Pixabay';
         obj.tags = finalTagsList;
 
-        if (!_.isEmpty(obj)) resultList.push(obj);
+        return obj;
       });
     }
   }
+
+  return result;
 }
 
 async function addImageSearchToDB(data) {
@@ -107,29 +115,39 @@ async function getImageSearchFromDBById(imageId) {
 module.exports.getImageSearch = async (req, res) => {
   const searchTerm = req.query.searchTerm;
 
-  let resultList = [];
-
   const userLoginStatus = common.checkUserLogin(req, res);
   if (userLoginStatus) {
-    await getUnsplashImage(searchTerm, resultList);
-    await getPixabayImage(searchTerm, resultList);
+    let resultList = [];
+    const list = await getUnsplashImage(searchTerm);
+    const list2 = await getPixabayImage(searchTerm);
+    resultList.push(list);
+    resultList.push(list2);
 
     if (!_.isEmpty(resultList)) {
-      resultList.forEach(async (item, i) => {
-        const imageSearchFromDB = await getImageSearchFromDBById(item.image_id);
-        if (_.isEmpty(imageSearchFromDB)) await addImageSearchToDB(item);
+      resultList.forEach((listItem, i) => {
+        if (!_.isEmpty(listItem)) {
+          listItem.forEach(async (item, i) => {
+            if (!_.isEmpty(item) && !_.isEmpty(item.image_id)) {
+              const imageSearchFromDB = await getImageSearchFromDBById(item.image_id);
+              if (_.isEmpty(imageSearchFromDB)) await addImageSearchToDB(item);
+            }
+          });
+        }
       });
     }
 
-    res.status(200).json(resultList);
+    const finalResultList = resultList[0].flatMap((o, i) => [...resultList.map((a) => a[i])]);
+    res.status(200).json(finalResultList);
   }
 };
 
 module.exports.getImageSearchForTest = async (searchTerm) => {
   let resultList = [];
 
-  await getUnsplashImage(searchTerm, resultList);
-  await getPixabayImage(searchTerm, resultList);
+  const list = await getUnsplashImage(searchTerm);
+  const list2 = await getPixabayImage(searchTerm);
+  resultList.push(list);
+  resultList.push(list2);
 
   return resultList;
 };
