@@ -95,9 +95,7 @@ module.exports.getImageSearch = async (req, res) => {
 
     await getPixabayImage(searchTerm, resultList);
 
-    res.status(200).json({
-      resultList: resultList,
-    });
+    res.status(200).json(resultList);
   }
 };
 
@@ -108,4 +106,4 @@ module.exports.getImageSearchForTest = async (searchTerm) => {
   await getPixabayImage(searchTerm, resultList);
 
   return resultList;
-}
+};
