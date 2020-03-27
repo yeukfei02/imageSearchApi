@@ -10,7 +10,7 @@
 			"name": "user",
 			"item": [
 				{
-					"name": "/user/signup",
+					"name": "/signup",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -35,12 +35,12 @@
 								"signup"
 							]
 						},
-						"description": "/user/signup"
+						"description": "/signup"
 					},
 					"response": []
 				},
 				{
-					"name": "/user/login",
+					"name": "/login",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -65,7 +65,7 @@
 								"login"
 							]
 						},
-						"description": "/user/login"
+						"description": "/login"
 					},
 					"response": []
 				}
