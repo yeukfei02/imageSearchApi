@@ -1,5 +1,3 @@
-const env = require('dotenv');
-env.config();
 
 const imageSearchController = require('../controller/imageSearch');
 
