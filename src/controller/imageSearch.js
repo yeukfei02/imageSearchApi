@@ -82,7 +82,7 @@ async function getPixabayImage(searchTerm) {
         let obj = {};
         obj.image_id = item.id.toString();
         obj.thumbnails = item.previewURL;
-        obj.preview = item.webformatURL;
+        obj.preview = item.largeImageURL;
         obj.title = '';
         obj.source = 'Pixabay';
         obj.tags = finalTagsList;
