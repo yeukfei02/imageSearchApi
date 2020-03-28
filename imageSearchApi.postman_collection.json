@@ -128,6 +128,50 @@
 			],
 			"description": "image-search",
 			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "video-search",
+			"item": [
+				{
+					"name": "/get-video-search",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJwYXNzd29yZCI6InRlc3QiLCJpYXQiOjE1ODUyMzQwNDV9.5MvIGYmgnnZwQ9pqeY5J0IOrk9kvTcblejNEJUqkYBU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:3000/api/video-search/get-video-search?searchTerm=hong kong",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"video-search",
+								"get-video-search"
+							],
+							"query": [
+								{
+									"key": "searchTerm",
+									"value": "hong kong"
+								}
+							]
+						},
+						"description": "/get-video-search"
+					},
+					"response": []
+				}
+			],
+			"description": "video-search",
+			"protocolProfileBehavior": {}
 		}
 	],
 	"protocolProfileBehavior": {}
