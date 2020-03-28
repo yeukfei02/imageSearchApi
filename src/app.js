@@ -13,6 +13,7 @@ env.config();
 
 const userRoutes = require('./routes/user');
 const imageSearchRoutes = require('./routes/imageSearch');
+const videoSearchRoutes = require('./routes/videoSearch');
 
 const environment = app.get('env');
 if (environment === 'development') {
@@ -38,6 +39,7 @@ app.use(compression());
 
 app.use('/api/user', userRoutes);
 app.use('/api/image-search', imageSearchRoutes);
+app.use('/api/video-search', videoSearchRoutes);
 
 app.use((req, res, next) => {
   res.status(404).json({
