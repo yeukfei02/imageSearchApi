@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const _ = require('lodash');
+const axios = require('axios');
+const crypto = require('crypto');
 const fetch = require('node-fetch');
 global.fetch = fetch;
 
@@ -13,6 +15,16 @@ const unsplash = new Unsplash({ accessKey: process.env.UNSPLASH_API_KEY });
 // pixabay
 const Pixabay = require('pixabay-api');
 const pixabay = Pixabay.authenticate(process.env.PIXABAY_API_KEY);
+
+// storyblocks
+const baseUrl = 'https://api.graphicstock.com';
+const searchUri = '/api/v1/stock-items/search/';
+const storyblocksUrl = `${baseUrl}${searchUri}`;
+
+const expires = Math.floor(Date.now() / 1000);
+const hmacBuilder = crypto.createHmac('sha256', process.env.STORY_BLOCKS_PRIVATE_KEY + expires);
+hmacBuilder.update(searchUri);
+const hmac = hmacBuilder.digest('hex');
 
 const common = require('../common/common');
 const ImageSearch = require('../model/imageSearch');
@@ -95,6 +107,39 @@ async function getPixabayImage(searchTerm) {
   return result;
 }
 
+async function getStoryblocksImage(searchTerm) {
+  let result = [];
+
+  const storyBlocksResult = await axios.get(`${storyblocksUrl}`, {
+    params: {
+      keywords: searchTerm,
+      page: 1,
+      num_results: 20,
+      APIKEY: process.env.STORY_BLOCKS_PUBLIC_KEY,
+      EXPIRES: expires,
+      HMAC: hmac,
+    },
+  });
+
+  if (!_.isEmpty(storyBlocksResult)) {
+    if (!_.isEmpty(storyBlocksResult.data.info)) {
+      result = storyBlocksResult.data.info.map((item, i) => {
+        let obj = {};
+        obj.image_id = item.id.toString();
+        obj.thumbnails = item.thumbnail_url;
+        obj.preview = item.preview_url;
+        obj.title = item.title;
+        obj.source = 'Storyblocks';
+        obj.tags = item.keywords.split(',');
+
+        return obj;
+      });
+    }
+  }
+
+  return result;
+}
+
 async function addImageSearchToDB(data) {
   const imageSearch = ImageSearch({
     _id: mongoose.Types.ObjectId(),
@@ -123,8 +168,10 @@ module.exports.getImageSearch = async (req, res) => {
     let resultList = [];
     const list = await getUnsplashImage(searchTerm);
     const list2 = await getPixabayImage(searchTerm);
+    const list3 = await getStoryblocksImage(searchTerm);
     resultList.push(list);
     resultList.push(list2);
+    resultList.push(list3);
 
     if (!_.isEmpty(resultList)) {
       resultList.forEach((listItem, i) => {
@@ -149,8 +196,10 @@ module.exports.getImageSearchForTest = async (searchTerm) => {
 
   const list = await getUnsplashImage(searchTerm);
   const list2 = await getPixabayImage(searchTerm);
+  const list3 = await getStoryblocksImage(searchTerm);
   resultList.push(list);
   resultList.push(list2);
+  resultList.push(list3);
 
   return resultList;
 };
