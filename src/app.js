@@ -45,6 +45,7 @@ app.use(compression());
 app.use('/api/user', userRoutes);
 app.use('/api/image-search', imageSearchRoutes);
 app.use('/api/video-search', videoSearchRoutes);
+
 // open graphql in browser
 app.use(
   '/graphql',
