@@ -20,7 +20,9 @@ describe('main.test', () => {
                   expect(item.source).toBeDefined();
                   expect(item.tags).toBeDefined();
 
-                  expect(item.source === 'Unsplash' || item.source === 'Pixabay').toBeTruthy();
+                  expect(
+                    item.source === 'Unsplash' || item.source === 'Pixabay' || item.source === 'Storyblocks',
+                  ).toBeTruthy();
                 }
               });
             }
