@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 const _ = require('lodash');
 const axios = require('axios');
+const crypto = require('crypto');
+
+// storyblocks
+const baseUrl = 'https://api.videoblocks.com';
+const searchUri = '/api/v1/stock-items/search/';
+const storyblocksUrl = `${baseUrl}${searchUri}`;
 
 const env = require('dotenv');
 env.config();
@@ -8,22 +14,17 @@ env.config();
 const common = require('../common/common');
 const VideoSearch = require('../model/videoSearch');
 
-async function searchVideos(searchTerm) {
-  const result = await axios.get(`https://pixabay.com/api/videos`, {
+async function getPixabayVideo(searchTerm) {
+  let result = [];
+
+  const pixabayResult = await axios.get(`https://pixabay.com/api/videos`, {
     params: {
       key: process.env.PIXABAY_API_KEY,
       q: searchTerm,
     },
   });
-  return result.data;
-}
-
-async function getPixabayVideo(searchTerm) {
-  let result = [];
-
-  const pixabayResult = await searchVideos(searchTerm);
   if (!_.isEmpty(pixabayResult)) {
-    const tagsList = pixabayResult.hits.map((item, i) => {
+    const tagsList = pixabayResult.data.hits.map((item, i) => {
       return item.tags;
     });
     const formattedTagsList = tagsList.join(',').split(',');
@@ -36,8 +37,8 @@ async function getPixabayVideo(searchTerm) {
       });
     }
 
-    if (!_.isEmpty(pixabayResult.hits)) {
-      result = pixabayResult.hits.map((item, i) => {
+    if (!_.isEmpty(pixabayResult.data.hits)) {
+      result = pixabayResult.data.hits.map((item, i) => {
         let obj = {};
         obj.video_id = item.id.toString();
         obj.type = item.type;
@@ -46,6 +47,51 @@ async function getPixabayVideo(searchTerm) {
         obj.tags = finalTagsList;
         obj.views = item.views;
         obj.downloads = item.downloads;
+
+        return obj;
+      });
+    }
+  }
+
+  return result;
+}
+
+async function getStoryblocksVideo(searchTerm) {
+  let result = [];
+
+  const expires = Math.floor(Date.now() / 1000);
+  const hmacBuilder = crypto.createHmac('sha256', process.env.STORY_BLOCKS_PRIVATE_KEY + expires);
+  hmacBuilder.update(searchUri);
+  const hmac = hmacBuilder.digest('hex');
+
+  const storyBlocksResult = await axios.get(`${storyblocksUrl}`, {
+    params: {
+      keywords: searchTerm,
+      page: 1,
+      num_results: 20,
+      APIKEY: process.env.STORY_BLOCKS_PUBLIC_KEY,
+      EXPIRES: expires,
+      HMAC: hmac,
+    },
+  });
+
+  if (!_.isEmpty(storyBlocksResult)) {
+    if (!_.isEmpty(storyBlocksResult.data.info)) {
+      result = storyBlocksResult.data.info.map((item, i) => {
+        let obj = {};
+        obj.video_id = item.id.toString();
+        obj.type = item.type;
+
+        const videos = {
+          preview_urls: item.preview_urls,
+          preview_url: item.preview_url,
+          preview_url_small: item.preview_url_small,
+        };
+        obj.videos = videos;
+        obj.source = 'Storyblocks';
+        obj.tags = item.keywords.split(',');
+        obj.views = null;
+        obj.downloads = null;
 
         return obj;
       });
@@ -81,21 +127,37 @@ module.exports.getVideoSearch = async (req, res) => {
 
   const userLoginStatus = common.checkUserLogin(req, res);
   if (userLoginStatus) {
-    const resultList = await getPixabayVideo(searchTerm);
+    let resultList = [];
+    const list = await getPixabayVideo(searchTerm);
+    const list2 = await getStoryblocksVideo(searchTerm);
+    resultList.push(list);
+    resultList.push(list2);
+
     if (!_.isEmpty(resultList)) {
-      resultList.forEach(async (item, i) => {
-        if (!_.isEmpty(item) && !_.isEmpty(item.video_id)) {
-          const videoSearchFromDB = await getVideoSearchFromDBById(item.video_id);
-          if (_.isEmpty(videoSearchFromDB)) await addVideoSearchToDB(item);
+      resultList.forEach(async (listItem, i) => {
+        if (!_.isEmpty(listItem)) {
+          listItem.forEach(async (item, i) => {
+            if (!_.isEmpty(item) && !_.isEmpty(item.video_id)) {
+              const videoSearchFromDB = await getVideoSearchFromDBById(item.video_id);
+              if (_.isEmpty(videoSearchFromDB)) await addVideoSearchToDB(item);
+            }
+          });
         }
       });
     }
 
-    res.status(200).json(resultList);
+    const finalResultList = resultList[0].flatMap((o, i) => [...resultList.map((a) => a[i])]);
+    res.status(200).json(finalResultList);
   }
 };
 
 module.exports.getVideoSearchForTest = async (searchTerm) => {
-  const resultList = await getPixabayVideo(searchTerm);
+  let resultList = [];
+
+  const list = await getPixabayVideo(searchTerm);
+  const list2 = await getStoryblocksVideo(searchTerm);
+  resultList.push(list);
+  resultList.push(list2);
+
   return resultList;
 };

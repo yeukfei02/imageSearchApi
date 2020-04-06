@@ -21,11 +21,6 @@ const baseUrl = 'https://api.graphicstock.com';
 const searchUri = '/api/v1/stock-items/search/';
 const storyblocksUrl = `${baseUrl}${searchUri}`;
 
-const expires = Math.floor(Date.now() / 1000);
-const hmacBuilder = crypto.createHmac('sha256', process.env.STORY_BLOCKS_PRIVATE_KEY + expires);
-hmacBuilder.update(searchUri);
-const hmac = hmacBuilder.digest('hex');
-
 const common = require('../common/common');
 const ImageSearch = require('../model/imageSearch');
 
@@ -109,6 +104,11 @@ async function getPixabayImage(searchTerm) {
 
 async function getStoryblocksImage(searchTerm) {
   let result = [];
+
+  const expires = Math.floor(Date.now() / 1000);
+  const hmacBuilder = crypto.createHmac('sha256', process.env.STORY_BLOCKS_PRIVATE_KEY + expires);
+  hmacBuilder.update(searchUri);
+  const hmac = hmacBuilder.digest('hex');
 
   const storyBlocksResult = await axios.get(`${storyblocksUrl}`, {
     params: {

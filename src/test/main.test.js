@@ -41,17 +41,21 @@ describe('main.test', () => {
         expect(result).toBeDefined();
 
         if (result) {
-          result.forEach((item, i) => {
-            if (item) {
-              expect(item.video_id).toBeDefined();
-              expect(item.type).toBeDefined();
-              expect(item.videos).toBeDefined();
-              expect(item.source).toBeDefined();
-              expect(item.tags).toBeDefined();
-              expect(item.views).toBeDefined();
-              expect(item.downloads).toBeDefined();
+          result.forEach((listItem, i) => {
+            if (listItem) {
+              listItem.forEach((item, i) => {
+                if (item) {
+                  expect(item.video_id).toBeDefined();
+                  expect(item.type).toBeDefined();
+                  expect(item.videos).toBeDefined();
+                  expect(item.source).toBeDefined();
+                  expect(item.tags).toBeDefined();
+                  expect(item.views).toBeDefined();
+                  expect(item.downloads).toBeDefined();
 
-              expect(item.source === 'Pixabay').toBeTruthy();
+                  expect(item.source === 'Pixabay' || item.source === 'Storyblocks').toBeTruthy();
+                }
+              });
             }
           });
         }
