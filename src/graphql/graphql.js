@@ -40,12 +40,12 @@ const schema = buildSchema(`
 const getImagesList = async (searchTerm) => {
   const imagesList = await imageSearch.getImageSearchForTest(searchTerm);
   return imagesList;
-}
+};
 
 const getVideosList = async (searchTerm) => {
   const videosList = await videoSearch.getVideoSearchForTest(searchTerm);
   return videosList;
-}
+};
 
 /*
 - graphql query
@@ -90,11 +90,10 @@ const getImage = async (args) => {
     const filterResult = resultList.filter((item, i) => {
       return item.image_id === imageId;
     });
-    if (filterResult && filterResult.length === 1)
-      result = filterResult[0];
+    if (filterResult && filterResult.length === 1) result = filterResult[0];
   }
   return result;
-}
+};
 
 /*
 - graphql query
@@ -133,7 +132,7 @@ const getImages = async (args) => {
   }
 
   return resultList;
-}
+};
 
 /*
 - graphql query
@@ -175,11 +174,10 @@ const getVideo = async (args) => {
     const filterResult = resultList.filter((item, i) => {
       return item.video_id === videoId;
     });
-    if (filterResult && filterResult.length === 1)
-      result = filterResult[0];
+    if (filterResult && filterResult.length === 1) result = filterResult[0];
   }
   return result;
-}
+};
 
 /*
 - graphql query
@@ -215,19 +213,19 @@ const getVideos = async (args) => {
   }
 
   return resultList;
-}
+};
 
 const root = {
   image: getImage,
   images: getImages,
   video: getVideo,
-  videos: getVideos
+  videos: getVideos,
 };
 
 module.exports.getGraphqlSchema = () => {
   return schema;
-}
+};
 
 module.exports.getGraphqlRoot = () => {
   return root;
-}
+};

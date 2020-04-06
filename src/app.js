@@ -46,11 +46,14 @@ app.use('/api/user', userRoutes);
 app.use('/api/image-search', imageSearchRoutes);
 app.use('/api/video-search', videoSearchRoutes);
 // open graphql in browser
-app.use('/graphql', graphqlHTTP({
-  schema: schema,
-  rootValue: root,
-  graphiql: true,
-}));
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: schema,
+    rootValue: root,
+    graphiql: true,
+  }),
+);
 
 app.use((req, res, next) => {
   res.status(404).json({
