@@ -16,6 +16,7 @@ const root = getGraphqlRoot();
 const env = require('dotenv');
 env.config();
 
+const mainRoutes = require('./routes/main');
 const userRoutes = require('./routes/user');
 const imageSearchRoutes = require('./routes/imageSearch');
 const videoSearchRoutes = require('./routes/videoSearch');
@@ -42,6 +43,7 @@ app.use(bodyParser.json());
 app.use(helmet());
 app.use(compression());
 
+app.use('/', mainRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/image-search', imageSearchRoutes);
 app.use('/api/video-search', videoSearchRoutes);
