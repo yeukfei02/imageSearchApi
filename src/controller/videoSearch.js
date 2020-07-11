@@ -11,7 +11,6 @@ const storyblocksUrl = `${baseUrl}${searchUri}`;
 const env = require('dotenv');
 env.config();
 
-const common = require('../common/common');
 const VideoSearch = require('../model/videoSearch');
 
 async function getPixabayVideo(searchTerm) {
@@ -125,30 +124,27 @@ async function getVideoSearchFromDBById(videoId) {
 module.exports.getVideoSearch = async (req, res) => {
   const searchTerm = req.query.searchTerm;
 
-  const userLoginStatus = common.checkUserLogin(req, res);
-  if (userLoginStatus) {
-    let resultList = [];
-    const list = await getPixabayVideo(searchTerm);
-    const list2 = await getStoryblocksVideo(searchTerm);
-    resultList.push(list);
-    resultList.push(list2);
+  let resultList = [];
+  const list = await getPixabayVideo(searchTerm);
+  const list2 = await getStoryblocksVideo(searchTerm);
+  resultList.push(list);
+  resultList.push(list2);
 
-    if (!_.isEmpty(resultList)) {
-      resultList.forEach(async (listItem, i) => {
-        if (!_.isEmpty(listItem)) {
-          listItem.forEach(async (item, i) => {
-            if (!_.isEmpty(item) && !_.isEmpty(item.video_id)) {
-              const videoSearchFromDB = await getVideoSearchFromDBById(item.video_id);
-              if (_.isEmpty(videoSearchFromDB)) await addVideoSearchToDB(item);
-            }
-          });
-        }
-      });
-    }
-
-    const finalResultList = resultList[0].flatMap((o, i) => [...resultList.map((a) => a[i])]);
-    res.status(200).json(finalResultList);
+  if (!_.isEmpty(resultList)) {
+    resultList.forEach(async (listItem, i) => {
+      if (!_.isEmpty(listItem)) {
+        listItem.forEach(async (item, i) => {
+          if (!_.isEmpty(item) && !_.isEmpty(item.video_id)) {
+            const videoSearchFromDB = await getVideoSearchFromDBById(item.video_id);
+            if (_.isEmpty(videoSearchFromDB)) await addVideoSearchToDB(item);
+          }
+        });
+      }
+    });
   }
+
+  const finalResultList = resultList[0].flatMap((o, i) => [...resultList.map((a) => a[i])]);
+  res.status(200).json(finalResultList);
 };
 
 module.exports.getVideoSearchForTest = async (searchTerm) => {

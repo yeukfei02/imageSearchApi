@@ -21,7 +21,6 @@ const baseUrl = 'https://api.graphicstock.com';
 const searchUri = '/api/v1/stock-items/search/';
 const storyblocksUrl = `${baseUrl}${searchUri}`;
 
-const common = require('../common/common');
 const ImageSearch = require('../model/imageSearch');
 
 async function toJson(obj) {
@@ -163,32 +162,29 @@ async function getImageSearchFromDBById(imageId) {
 module.exports.getImageSearch = async (req, res) => {
   const searchTerm = req.query.searchTerm;
 
-  const userLoginStatus = common.checkUserLogin(req, res);
-  if (userLoginStatus) {
-    let resultList = [];
-    const list = await getUnsplashImage(searchTerm);
-    const list2 = await getPixabayImage(searchTerm);
-    const list3 = await getStoryblocksImage(searchTerm);
-    resultList.push(list);
-    resultList.push(list2);
-    resultList.push(list3);
+  let resultList = [];
+  const list = await getUnsplashImage(searchTerm);
+  const list2 = await getPixabayImage(searchTerm);
+  const list3 = await getStoryblocksImage(searchTerm);
+  resultList.push(list);
+  resultList.push(list2);
+  resultList.push(list3);
 
-    if (!_.isEmpty(resultList)) {
-      resultList.forEach((listItem, i) => {
-        if (!_.isEmpty(listItem)) {
-          listItem.forEach(async (item, i) => {
-            if (!_.isEmpty(item) && !_.isEmpty(item.image_id)) {
-              const imageSearchFromDB = await getImageSearchFromDBById(item.image_id);
-              if (_.isEmpty(imageSearchFromDB)) await addImageSearchToDB(item);
-            }
-          });
-        }
-      });
-    }
-
-    const finalResultList = resultList[0].flatMap((o, i) => [...resultList.map((a) => a[i])]);
-    res.status(200).json(finalResultList);
+  if (!_.isEmpty(resultList)) {
+    resultList.forEach((listItem, i) => {
+      if (!_.isEmpty(listItem)) {
+        listItem.forEach(async (item, i) => {
+          if (!_.isEmpty(item) && !_.isEmpty(item.image_id)) {
+            const imageSearchFromDB = await getImageSearchFromDBById(item.image_id);
+            if (_.isEmpty(imageSearchFromDB)) await addImageSearchToDB(item);
+          }
+        });
+      }
+    });
   }
+
+  const finalResultList = resultList[0].flatMap((o, i) => [...resultList.map((a) => a[i])]);
+  res.status(200).json(finalResultList);
 };
 
 module.exports.getImageSearchForTest = async (searchTerm) => {
