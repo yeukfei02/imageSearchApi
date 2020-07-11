@@ -3,6 +3,8 @@ const router = express.Router();
 
 const videoSearchController = require('../controller/videoSearch');
 
-router.get('/get-video-search', videoSearchController.getVideoSearch);
+const { isUserLoggedIn } = require('../middleware/middleware');
+
+router.get('/get-video-search', isUserLoggedIn, videoSearchController.getVideoSearch);
 
 module.exports = router;
