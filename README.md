@@ -1,6 +1,5 @@
 # imageSearchApi
 
-[![Build Status](https://travis-ci.com/yeukfei02/imageSearchApi.svg?branch=master)](https://travis-ci.com/yeukfei02/imageSearchApi)
 [![codecov](https://codecov.io/gh/yeukfei02/imageSearchApi/branch/master/graph/badge.svg)](https://codecov.io/gh/yeukfei02/imageSearchApi)
 
 imageSearchApi by unsplash, pixabay, storyblocks
